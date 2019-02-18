@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ContentFilters</key>
+	<dict/>
+	<key>auto_connect</key>
+	<true/>
+	<key>data</key>
+	<dict>
+		<key>connection</key>
+		<dict>
+			<key>database</key>
+			<string>media</string>
+			<key>host</key>
+			<string>localhost</string>
+			<key>kcid</key>
+			<string>5611406766325993603</string>
+			<key>name</key>
+			<string>Local MAMP</string>
+			<key>rdbms_type</key>
+			<string>mysql</string>
+			<key>sslCACertFileLocation</key>
+			<string></string>
+			<key>sslCACertFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslCertificateFileLocation</key>
+			<string></string>
+			<key>sslCertificateFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslKeyFileLocation</key>
+			<string></string>
+			<key>sslKeyFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>type</key>
+			<string>SPSocketConnection</string>
+			<key>useSSL</key>
+			<integer>0</integer>
+			<key>user</key>
+			<string>root</string>
+		</dict>
+		<key>session</key>
+		<dict>
+			<key>connectionEncoding</key>
+			<string>utf8</string>
+			<key>contentPageNumber</key>
+			<integer>1</integer>
+			<key>contentSelection</key>
+			<data>
+			YnBsaXN0MDDUAQIDBAUGJSZYJHZlcnNpb25YJG9iamVjdHNZJGFy
+			Y2hpdmVyVCR0b3ASAAGGoKgHCBMUFRYaIVUkbnVsbNMJCgsMDxJX
+			TlMua2V5c1pOUy5vYmplY3RzViRjbGFzc6INDoACgAOiEBGABIAF
+			gAdUdHlwZVRyb3dzXxAdU2VsZWN0aW9uRGV0YWlsVHlwZU5TSW5k
+			ZXhTZXTSFwsYGVxOU1JhbmdlQ291bnQQAIAG0hscHR5aJGNsYXNz
+			bmFtZVgkY2xhc3Nlc1pOU0luZGV4U2V0oh8gWk5TSW5kZXhTZXRY
+			TlNPYmplY3TSGxwiI1xOU0RpY3Rpb25hcnmiIiRYTlNPYmplY3Rf
+			EA9OU0tleWVkQXJjaGl2ZXLRJyhUZGF0YYABAAgAEQAaACMALQAy
+			ADcAQABGAE0AVQBgAGcAagBsAG4AcQBzAHUAdwB8AIEAoQCmALMA
+			tQC3ALwAxwDQANsA3gDpAPIA9wEEAQcBEAEiASUBKgAAAAAAAAIB
+			AAAAAAAAACkAAAAAAAAAAAAAAAAAAAEs
+			</data>
+			<key>contentSortColIsAsc</key>
+			<true/>
+			<key>contentViewport</key>
+			<string>{{0, 0}, {694, 448}}</string>
+			<key>isToolbarVisible</key>
+			<true/>
+			<key>queries</key>
+			<string>#CREATE TABLE
+create table mediaindex (filename varchar(255), filetype varchar(50), filesize bigint, filehash varchar(255));
+create table goldenmedialist (filename varchar(255),filehash varchar(255));
+create table dupevideo (filename varchar(255));
+
+#Lookup by Hash
+select * from mediaindex where filehash = '8932644dcfd89b938fc360b89ec74b64da6835128b6d1ecedc9031e79a728e39';
+
+select * from goldenmedialist where filename like '%1874%';
+
+#COUNT
+select count(*) from goldenmedialist;
+select count(*) from mediaindex;
+select count(*) from dupevideo;
+
+select * from mediaindex where filetype="Unknown"
+
+select d.filename, m.filesize from dupevideo d, mediaindex m where d.filename = m.filename order by m.filesize desc;
+select * from mediaindex where filesize = 4280086604;
+
+alter table goldenmedialist add index (filename);
+alter table mediaindex add index (filename);
+
+select count(*) from goldenmedialist g, mediaindex m where g.filename != m.filename and m.filetype = 'Image'
+
+select count(distinct filename) from goldenmedialist;
+
+# GET DUPE FILE NAMES TO DELETE
+select m1.filename from mediaindex m1 where m1.filetype = 'Image' and m1.filename not in (
+	select g.filename from goldenmedialist g
+);
+
+#DELETE DUPE IMG ROWS
+delete from mediaindex where filetype = 'Image' and filename not in (
+	select filename from goldenmedialist
+);
+
+#SMALL FILES
+SELECT count(*) FROM mediaindex WHERE filehash = "b48cc336c335cdc3be6ec1891783687ae136969c969d9869ebd4942f42393dd0" AND filesize = 171;
+
+#SMALL FILES
+select count(*) from mediaindex where filesize &lt; 4000;
+
+#Group by File Type
+select filetype, count(*) from mediaindex group by filetype;
+
+#LARGE VIDEO FILES
+select filename, filesize from mediaindex where filetype = "Video" order by filesize desc limit 100;
+
+#Unknown Files
+select * from mediaindex where filetype = "Unknown";  
+
+#Dupes by names
+select * from mediaindex where filename like '%IMG_0516%';
+
+#Delete file bu name
+delete from mediaindex where filename like '%xili%';
+
+#BIG Q - Files with biggest duplicates 
+select filename, filehash, count(*) as dupcount from mediaindex group by filehash order by dupcount desc limit 1000;
+#IMG DUPE CHECK
+select filename, filehash, count(*) as dupcount from mediaindex group by filehash having count(*) &gt; 1 order by dupcount limit 1000;
+#VID DUPE CHECK
+select filename, count(*) as dupcount from mediaindex where filetype = "Video" group by filesize having count(*) &gt; 1 and order by dupcount limit 1000;
+
+select count(*) from (select filename, count(*) as dupcount from mediaindex group by filehash having count(*) &gt; 1 order by dupcount) as asdf;
+
+select filename, count(*) as count from mediaindex where filetype = "Video" group by filesize order by count desc;
+
+#Delete file by hash
+delete from mediaindex where filehash = 'ab2b8121d4f4d5d6aff0d4f0c0f1c30dfa5a815a955a94a7fec1d48b815e827c';
+
+delete from mediaindex where filename in (select filename from dupevideo);
+
+#Lookup file by hash
+select filename from mediaindex where filehash = '991f70f2c00f1fca99c6300dc7b95739cc6c65a7921b3693ccb5255ad5a74a64';
+
+select * from mediaindex where filename = "/Volumes/BILLU/ALL_MEDIA/._twins.mp4";
+select filename from mediaindex where filename like "%.THM%" and filetype = "Unknown";
+delete from mediaindex where filename like "%.THM%" and filetype = "Unknown";
+
+
+select filename from dupevideo;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</string>
+			<key>table</key>
+			<string>dupevideo</string>
+			<key>view</key>
+			<string>SP_VIEW_CUSTOMQUERY</string>
+			<key>windowVerticalDividerPosition</key>
+			<real>200</real>
+		</dict>
+	</dict>
+	<key>encrypted</key>
+	<false/>
+	<key>format</key>
+	<string>connection</string>
+	<key>queryFavorites</key>
+	<array/>
+	<key>queryHistory</key>
+	<array>
+		<string>select * from mediaindex where filename like "%.THM%" and filetype = "Unknown"</string>
+		<string>select * from mediaindex where filename like "%.THM%" and filetype = "Video"</string>
+		<string>select * from mediaindex where filetype="Unknown"</string>
+		<string>delete from mediaindex where filename in (select filename from dupevideo)</string>
+		<string>select filename from dupevideo</string>
+		<string>select * from mediaindex where filesize = 4280086604</string>
+		<string>select d.filename, m.filesize from dupevideo d, mediaindex m where d.filename = m.filename order by m.filesize desc</string>
+		<string>select d.filename, m.filesize from dupevideo d, mediaindex m where d.filename = m.filename</string>
+		<string>select * from dupevideo</string>
+		<string>select count(*) from dupevideo</string>
+		<string>create table dupevideo (filename varchar(255))</string>
+		<string>select * from mediaindex where filename like "%/Volumes/BILLU/ALL_MEDIA/IMG_0187%" and filetype = "Video"</string>
+		<string>select * from mediaindex where filename like "%copy%" and filetype = "Video"</string>
+		<string>select * from mediaindex where filesize = "4096" and filetype = "Video"</string>
+		<string>select * from mediaindex where filesize = "4096"</string>
+		<string>select * from mediaindex where filename = "/Volumes/BILLU/ALL_MEDIA/._twins.mp4"</string>
+		<string>select filename, count(*) as count from mediaindex where filetype = "Video" group by filesize order by count desc</string>
+		<string>select filename, count(*) as count from mediaindex where filetype = "Video" group by filesize order count by desc</string>
+		<string>select filename, count(*) from mediaindex where filetype = "Video" group by filesize order by desc</string>
+		<string>select filename, count(*) from mediaindex where filetype = "Video" group by filesize</string>
+	</array>
+	<key>rdbms_type</key>
+	<string>mysql</string>
+	<key>rdbms_version</key>
+	<string>5.6.35</string>
+	<key>version</key>
+	<integer>1</integer>
+</dict>
+</plist>
